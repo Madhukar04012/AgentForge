@@ -1,0 +1,21 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "agentforge",
+  "version": "1.5.0",
+  "description": "AI Agent Development, Evaluation & Deployment Platform",
+  "author": { "name": "Google LLC" },
+  "homepage": "https://github.com/google/agents-cli",
+  "repository": "https://github.com/google/agents-cli",
+  "license": "Apache-2.0",
+  "keywords": [
+    "adk",
+    "agents",
+    "agent-development-kit",
+    "agent-platform",
+    "agentforge",
+    "google-cloud",
+    "scaffolding",
+    "evaluation",
+    "deployment"
+  ]
+}

@@ -1,0 +1,150 @@
+# Development Guide
+
+This guide covers the full development workflow — from defining what you're building to monitoring it in production. It follows the same phases your coding agent uses via the `agentforge-workflow` skill.
+
+---
+
+## Phase 0: Understand
+
+Before writing any code, define what you're building.
+
+If you're working with a coding agent, it will ask you these questions automatically. If you're working manually, answer them yourself:
+
+1. **What problem will the agent solve?** — Core purpose and capabilities
+2. **External APIs or data sources needed?** — Tools, integrations, auth requirements
+3. **Safety constraints?** — What the agent must NOT do
+4. **Deployment preference?** — Prototype first, or full deployment (Agent Runtime, Cloud Run, GKE)?
+
+Save your answers to `.agents-cli-spec.md` in the current directory — overview, example use cases, tools required, constraints, success criteria.
+
+---
+
+## Phase 1: Scaffold
+
+Create a new project from a template:
+
+```bash
+agentforge create my-agent
+```
+
+Choose your agent template (`adk`) and deployment target during creation. For fast prototyping without infrastructure decisions:
+
+```bash
+agentforge create my-agent --prototype --yes
+```
+
+You can add deployment support later with `agentforge scaffold enhance`.
+
+### Extending the starter agent
+
+The scaffold creates a starter agent: a model, an instruction, and one sample tool. Anything beyond that comes from a recipe. Recipes are working agents in [google/adk-samples](https://github.com/google/adk-samples) that you clone and adapt.
+
+Recipes cover:
+
+- Retrieval over your own documents
+- Sandboxed code execution
+- Memory across sessions
+- OAuth consent
+- Approval gates before risky actions
+- Event-driven runs
+
+Your coding agent picks the recipe for you. The `agentforge-adk-code` skill contains a [topic index](../reference/skills.md#adk-code) (or the [samples reference](https://github.com/google/agents-cli/blob/main/skills/agentforge-adk-code/references/samples.md)) that maps each need to a recipe, and the workflow skill tells the agent to read the index before writing code. Ask for an agent that answers questions from your docs, and it opens `rag-agent-search`.
+
+---
+
+## Phase 2: Build & Iterate
+
+### With a coding agent
+
+Open your coding agent and activate the workflow skill:
+
+```
+/agentforge-workflow
+```
+
+Describe what you want to build. Your coding agent uses the installed skills to write agent logic, create tools, and test changes — all following ADK best practices.
+
+### Manually
+
+Edit your agent logic in `app/agent.py` and test with:
+
+- `agentforge playground` — launches the ADK web playground at `localhost:8080` with hot reload
+- `agentforge run "your prompt"` — quick smoke test from the terminal
+
+### Code Quality
+
+```bash
+agentforge lint                                # Ruff checks and formatting
+uv run pytest tests/unit tests/integration     # Run unit and integration tests
+```
+
+### Package Management
+
+Add and remove dependencies with [uv](https://docs.astral.sh/uv/):
+
+- `uv add <package>`
+- `uv remove <package>`
+
+---
+
+## Phase 3: Evaluate
+
+Run structured evaluations to validate agent behavior. This uses the [GenAI Eval SDK](https://docs.cloud.google.com/gemini-enterprise-agent-platform/optimize/evaluation/agent-evaluation) under the hood.
+
+```bash
+agentforge eval run
+```
+
+Expect **5-10+ iterations** of the eval-fix loop before your agent consistently passes. Start with 1-2 core eval cases, fix failures, then expand coverage.
+
+See the [Evaluation Guide](evaluation.md) for metrics, dataset schemas, and the full methodology.
+
+---
+
+## Phase 4: Deploy
+
+Once the eval scores are good enough, deploy to Google Cloud.
+
+1. **Add a deployment target** (if you started with `--prototype`):
+
+    ```bash
+    agentforge scaffold enhance --deployment-target cloud_run
+    ```
+
+2. **Deploy**:
+
+    ```bash
+    agentforge deploy
+    ```
+
+!!! tip
+    To enable observability features (prompt-response logging, content logs), run `agentforge infra single-project` after deploying. See the [Observability Guide](observability/index.md) for details.
+
+For production pipelines with staging, approval gates, and CI/CD, see [Deployment](deployment.md) and [CI/CD & Production](cicd.md).
+
+---
+
+## Phase 5: Publish (optional)
+
+Register your deployed agent with Gemini Enterprise:
+
+```bash
+agentforge publish gemini-enterprise
+```
+
+Not all agents need this — only if you're distributing through Gemini Enterprise.
+
+---
+
+## Phase 6: Observe
+
+Monitor your agent in production. Cloud Trace is enabled by default in all deployed agents — no configuration needed.
+
+- **Cloud Trace** — distributed tracing, latency analysis, error visibility
+- **BigQuery Agent Analytics** — opt-in advanced analytics for token usage, conversation patterns, and LLM-as-judge scoring
+
+See the [Observability Guide](observability/index.md) for setup and usage.
+
+---
+
+For all commands and flags, see the [CLI Reference](../cli/index.md). For details on the skills your coding agent uses at each phase, see [Skills](../reference/skills.md).

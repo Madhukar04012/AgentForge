@@ -1,0 +1,68 @@
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# syntax=docker/dockerfile:1.6
+#
+# AgentForge API image. Multi-stage so the runtime layer doesn't carry
+# the build toolchain. We deliberately do NOT install the agents-cli
+# distribution here — Phase 1 ships only the FastAPI backend; the CLI
+# is unaffected.
+
+ARG PYTHON_VERSION=3.11
+
+# ---- builder --------------------------------------------------------------
+FROM python:${PYTHON_VERSION}-slim AS builder
+
+ENV PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+WORKDIR /app
+
+# Install build deps.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy only the package + minimal metadata first to maximise layer cache.
+COPY pyproject.toml README.md /app/
+COPY agentforge_api /app/agentforge_api
+
+# Install the package + runtime deps.
+RUN pip install --upgrade pip \
+    && pip install .
+
+# ---- runtime --------------------------------------------------------------
+FROM python:${PYTHON_VERSION}-slim AS runtime
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    AGENTFORGE_ENVIRONMENT=production
+
+# Non-root user.
+RUN groupadd --system app && useradd --system --gid app app
+
+WORKDIR /app
+COPY --from=builder /usr/local/lib/python${PYTHON_VERSION}/site-packages /usr/local/lib/python${PYTHON_VERSION}/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+COPY --from=builder /app /app
+
+USER app
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD python -c "import urllib.request,sys; r=urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=3); sys.exit(0 if r.status==200 else 1)"
+
+CMD ["uvicorn", "agentforge_api.app:app", "--host", "0.0.0.0", "--port", "8000"]

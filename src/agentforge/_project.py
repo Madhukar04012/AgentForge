@@ -1,0 +1,418 @@
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Project configuration reader for agent projects."""
+
+from __future__ import annotations
+
+import logging
+import os
+import re
+import tomllib
+from collections.abc import Mapping
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+
+import click
+import yaml
+
+# Manifest filename. New primary is ``agentforge-manifest.yaml``; the
+# pre-rename name ``agents-cli-manifest.yaml`` is still read as a fallback
+# so existing projects keep working without a manual migration.
+MANIFEST_FILENAME = "agentforge-manifest.yaml"
+MANIFEST_FILENAME_LEGACY = "agents-cli-manifest.yaml"
+# Pyproject [tool] section name. The pre-rename name ``tool.agents-cli``
+# is still read as a fallback.
+PYPROJECT_TOOL_KEY = "agentforge"
+PYPROJECT_TOOL_KEY_LEGACY = "agentforge"
+
+
+@dataclass
+class ProjectConfig:
+    """Configuration derived from agentforge-manifest.yaml."""
+
+    project_name: str = ""
+    deployment_target: str = "none"
+    agent_directory: str = "app"
+    is_a2a: bool = False
+    region: str = "us-east1"
+    base_template: str = "adk"
+    acli_version: str = ""
+    language: str = "python"
+    session_type: str = "none"
+    cicd_runner: str = "skip"
+    agent_gateway: bool = False
+    agent_guidance_filename: str = "GEMINI.md"
+
+    @property
+    def create_params(self) -> dict[str, Any]:
+        return {
+            "deployment_target": self.deployment_target,
+            "is_a2a": self.is_a2a,
+            "session_type": self.session_type,
+            "cicd_runner": self.cicd_runner,
+            "agent_gateway": self.agent_gateway,
+            "agent_guidance_filename": self.agent_guidance_filename,
+        }
+
+    @classmethod
+    def from_dict(
+        cls,
+        data: Mapping[str, Any] | Any,
+        filename: str = MANIFEST_FILENAME,
+    ) -> ProjectConfig:
+        """Create a ProjectConfig from a raw manifest dictionary."""
+        if not isinstance(data, Mapping):
+            raise click.ClickException(f"malformed {filename}")
+
+        cfg = cls()
+        cfg.project_name = data.get("name", cfg.project_name)
+        cfg.agent_directory = data.get("agent_directory", cfg.agent_directory)
+        cfg.region = data.get("region", cfg.region)
+        cfg.base_template = data.get("base_template", cfg.base_template)
+        cfg.acli_version = (
+            data.get("acli_version") or data.get("version") or cfg.acli_version
+        )
+        cfg.language = data.get("language", cfg.language)
+
+        create_params = data.get("create_params")
+        if create_params is None:
+            create_params = {}
+        elif not isinstance(create_params, Mapping):
+            raise click.ClickException(f"malformed create_params in {filename}")
+
+        cfg.session_type = create_params.get("session_type", cfg.session_type)
+        cfg.cicd_runner = create_params.get("cicd_runner", cfg.cicd_runner)
+        cfg.agent_guidance_filename = create_params.get(
+            "agent_guidance_filename", cfg.agent_guidance_filename
+        )
+        cfg.deployment_target = create_params.get(
+            "deployment_target", cfg.deployment_target
+        )
+        cfg.is_a2a = create_params.get("is_a2a", cfg.is_a2a)
+        cfg.agent_gateway = create_params.get("agent_gateway", cfg.agent_gateway)
+
+        return cfg
+
+
+_WARNED_LEGACY_CONFIG = False
+
+
+def _warn_legacy_config() -> None:
+    """Warn about legacy configuration once."""
+    global _WARNED_LEGACY_CONFIG
+    if not _WARNED_LEGACY_CONFIG:
+        click.secho(
+            "\n⚠️  Legacy configuration detected in pyproject.toml.",
+            fg="yellow",
+            bold=True,
+        )
+        click.secho(
+            f"   Run `agentforge scaffold upgrade` to migrate to {MANIFEST_FILENAME}.\n",
+            fg="yellow",
+        )
+        _WARNED_LEGACY_CONFIG = True
+
+
+def _read_project_config_from_manifest(manifest_path: Path) -> ProjectConfig:
+    """Read project configuration from an agentforge-manifest.yaml file."""
+    with open(manifest_path, encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+    if data is None:
+        data = {}
+    return ProjectConfig.from_dict(data, filename=manifest_path.name)
+
+
+def _read_project_config_from_pyproject(pyproject_path: Path) -> ProjectConfig:
+    """Read project configuration from a legacy pyproject.toml file.
+
+    The new primary key is ``[tool.agentforge]``; the legacy
+    ``[tool.agents-cli]`` is read as a fallback so pre-rename projects keep
+    loading.
+    """
+    with open(pyproject_path, "rb") as f:
+        pyproj_data = tomllib.load(f)
+    tool_section = pyproj_data.get("tool", {})
+    if not isinstance(tool_section, Mapping):
+        return ProjectConfig()
+    data = None
+    if PYPROJECT_TOOL_KEY in tool_section:
+        data = tool_section[PYPROJECT_TOOL_KEY]
+    elif PYPROJECT_TOOL_KEY_LEGACY in tool_section:
+        _warn_legacy_config()
+        data = tool_section[PYPROJECT_TOOL_KEY_LEGACY]
+    else:
+        return ProjectConfig()
+    if data is None:
+        data = {}
+    elif isinstance(data, Mapping):
+        data = dict(data)
+        project_section = pyproj_data.get("project", {})
+        if isinstance(project_section, Mapping):
+            data["name"] = project_section.get("name", "")
+    return ProjectConfig.from_dict(data, filename=pyproject_path.name)
+
+
+def read_project_config(project_dir: str | None = None) -> ProjectConfig:
+    """Read project metadata from agentforge-manifest.yaml.
+
+    Falls back to the legacy ``agents-cli-manifest.yaml`` filename, then to
+    ``pyproject.toml`` (with either the new ``[tool.agentforge]`` or legacy
+    ``[tool.agents-cli]`` section), then to sensible defaults.
+
+    Args:
+        project_dir: Directory containing the manifest.
+            Defaults to current working directory.
+
+    Returns:
+        ProjectConfig with values from the manifest or defaults.
+    """
+    root = Path(project_dir) if project_dir else Path.cwd()
+    manifest_path = root / MANIFEST_FILENAME
+    legacy_manifest_path = root / MANIFEST_FILENAME_LEGACY
+    pyproject_path = root / "pyproject.toml"
+
+    if manifest_path.exists():
+        return _read_project_config_from_manifest(manifest_path)
+    if legacy_manifest_path.exists():
+        return _read_project_config_from_manifest(legacy_manifest_path)
+    if pyproject_path.exists():
+        return _read_project_config_from_pyproject(pyproject_path)
+    # If none of the above exist, return a default project config
+    return ProjectConfig()
+
+
+def _parse_version(v: str) -> tuple[int, ...]:
+    """Parse a dotted numeric version into a comparable tuple.
+
+    Raises ``ValueError`` on non-numeric components (e.g. a ``0.0.0-dev``
+    source build), which callers treat as "version unknown — don't compare".
+    """
+    return tuple(int(x) for x in v.split("."))
+
+
+def scaffold_older_than(cfg: ProjectConfig, version: str) -> bool:
+    """True when the version that scaffolded ``cfg`` is older than ``version``.
+
+    Best-effort: returns False when the scaffold version is missing or
+    non-numeric (e.g. a ``0.0.0-dev`` source build), so callers fall back to
+    generic guidance instead of guessing.
+    """
+    if not cfg.acli_version:
+        return False
+    try:
+        return _parse_version(cfg.acli_version) < _parse_version(version)
+    except ValueError:
+        return False
+
+
+def check_cli_version(cfg: ProjectConfig) -> None:
+    """Warn if the running CLI version doesn't match the version that scaffolded the project.
+
+    Compares ``acli_version`` from project config with the running
+    ``__version__``.  Emits a warning with upgrade guidance when there is a
+    mismatch; never blocks execution.
+    """
+    acli_version = cfg.acli_version
+    if not acli_version:
+        return
+
+    from agentforge import __version__
+
+    try:
+        project_ver = _parse_version(acli_version)
+        cli_ver = _parse_version(__version__)
+    except ValueError:
+        return
+
+    if cli_ver < project_ver:
+        click.echo(
+            f"\n⚠️  Version mismatch: project was scaffolded with agentforge {acli_version},"
+            f" running {__version__}.\n"
+            f"   Upgrade the CLI: uv tool install agentforge@{acli_version}\n"
+        )
+    elif cli_ver > project_ver:
+        click.echo(
+            f"\n⚠️  Version mismatch: project was scaffolded with agentforge {acli_version},"
+            f" running {__version__}.\n"
+            "   Upgrade the project: agentforge scaffold upgrade\n"
+        )
+
+
+def _find_legacy_project_root(start_dir: Path) -> Path | None:
+    """Find a legacy project root containing a pyproject.toml with agentforge config."""
+    for parent in [start_dir, *start_dir.parents]:
+        pyproject_path = parent / "pyproject.toml"
+        if pyproject_path.exists():
+            try:
+                with open(pyproject_path, "rb") as f:
+                    data = tomllib.load(f)
+                tool_data = data.get("tool")
+                if not isinstance(tool_data, Mapping):
+                    continue
+                if (
+                    PYPROJECT_TOOL_KEY in tool_data
+                    or PYPROJECT_TOOL_KEY_LEGACY in tool_data
+                ):
+                    return parent
+            except Exception:
+                pass
+    return None
+
+
+def find_project_root(dir: Path | None = None) -> Path | None:
+    """Find the project root by walking up looking for the manifest."""
+    if dir is None:
+        dir = Path.cwd()
+    for parent in [dir, *dir.parents]:
+        # New manifest name first; legacy filename is the fallback.
+        if (parent / MANIFEST_FILENAME).exists():
+            return parent
+        if (parent / MANIFEST_FILENAME_LEGACY).exists():
+            return parent
+
+    # Fallback to legacy project root discovery
+    legacy_root = _find_legacy_project_root(dir)
+    if legacy_root is not None:
+        _warn_legacy_config()
+        return legacy_root
+
+    return None
+
+
+def is_project_moved() -> bool:
+    """Check if the project has been moved by comparing the current path with .venv/bin/activate."""
+    root = find_project_root(Path.cwd())
+    if not root:
+        return False
+
+    venv_dir = root / ".venv"
+    # Support both Unix-style (bin) and Windows-style (Scripts) virtualenvs
+    activate_script = venv_dir / "bin" / "activate"
+    if not activate_script.exists():
+        activate_script = venv_dir / "Scripts" / "activate"
+
+    if not activate_script.exists():
+        return False
+
+    try:
+        with open(activate_script, encoding="utf-8") as f:
+            for line in f:
+                if line.startswith("VIRTUAL_ENV="):
+                    stored_path_str = line.split("=", 1)[1].strip().strip("'\"")
+                    stored_path = Path(stored_path_str).resolve()
+                    current_path = venv_dir.resolve()
+                    return stored_path != current_path
+    except Exception as e:
+        logging.warning(f"Error checking if project moved: {e}")
+    return False
+
+
+# ---------------------------------------------------------------------------
+# Prerequisite guards — reusable checks for CLI commands
+# ---------------------------------------------------------------------------
+
+
+def chdir_project_root(dir: Path | None = None) -> None:
+    """
+    Locate the project root relative to the supplied directory and chdir to it.
+    Raise if no root is found.
+    """
+    if dir is None:
+        dir = Path.cwd()
+    root = find_project_root(dir)
+    if not root:
+        raise click.ClickException(
+            f"No {MANIFEST_FILENAME} (or legacy {MANIFEST_FILENAME_LEGACY}) "
+            "found in the current directory or its parents.\n"
+            "  Run this command from your project root, or create a project first:\n"
+            "    agentforge create my-agent"
+        )
+    # Only announce the root when we actually move (i.e. run from a subdir).
+    if root.resolve() != Path.cwd().resolve():
+        click.echo(f"Using project root directory: {root}")
+    os.chdir(root)
+
+
+def require_agent_directory(cfg: ProjectConfig) -> None:
+    """
+    Raise if the configured agent_directory doesn't exist.
+    Assumes cwd is the project root.
+    """
+    agent_path = Path(cfg.agent_directory)
+    if not agent_path.is_dir():
+        raise click.ClickException(
+            f"Agent directory '{cfg.agent_directory}' not found.\n"
+            "  Ensure you're in the project root and that the directory exists.\n"
+            f"  The agent_directory is configured in {MANIFEST_FILENAME}."
+        )
+
+
+def require_deployment_target(cfg: ProjectConfig) -> None:
+    """Raise if no deployment target is configured."""
+    if cfg.deployment_target in ("none", ""):
+        raise click.ClickException(
+            "No deployment target configured.\n"
+            f"  Set deployment_target in {MANIFEST_FILENAME},\n"
+            "  or add deployment support to your project:\n"
+            "    agentforge scaffold enhance"
+        )
+
+
+def require_a2a_project(cfg: ProjectConfig) -> None:
+    """Raise if the project is not an A2A agent."""
+    if not cfg.is_a2a:
+        raise click.ClickException(
+            "This command requires an A2A agent project (is_a2a = true).\n"
+            "  To add A2A support to your project, run:\n"
+            "    agentforge scaffold enhance"
+        )
+
+
+def find_project_config(project_dir: Path | None = None) -> ProjectConfig | None:
+    """Read agentforge config from project config files, resolving the project root.
+
+    Args:
+        project_dir: Optional path to start searching from. Defaults to cwd.
+
+    Returns:
+        ProjectConfig object if found, None otherwise.
+    """
+    project_root_dir = find_project_root(project_dir)
+    if project_root_dir is None:
+        return None
+
+    return read_project_config(str(project_root_dir))
+
+
+def root_agent_name(project_name: str) -> str:
+    """The ADK agent name the scaffolded template gives a project's root agent.
+
+    Single definition on purpose. The scaffold bakes this into
+    ``Agent(name=...)``, and it then travels out in telemetry as the OpenTelemetry
+    ``gen_ai.agent.name`` attribute -- which is what an observability backend
+    filters an agent's traces on. Deriving it from the project name in one
+    place is what lets agentforge know the value without parsing the
+    generated ``agent.py``.
+
+    Coerced to a valid Python identifier, since ADK agent names must be:
+    ``my-agent`` becomes ``my_agent``. Falls back to ``root_agent`` (the
+    historical literal) when the project name has nothing usable in it.
+    """
+    candidate = re.sub(r"\W+", "_", project_name).strip("_").lower()
+    if not candidate:
+        return "root_agent"
+    # A leading digit is legal in a project name but not in an identifier.
+    return f"agent_{candidate}" if candidate[0].isdigit() else candidate

@@ -1,38 +1,146 @@
-[build-system]
-requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.build_meta"
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# AgentForge monorepo pyproject.
+#
+# The CLI (AgentForge, the renamed google-agents-cli) lives at
+# `src/agentforge/`. The web-platform backend (`agentforge_api/`) is
+# the new addition in Phase 1. Both distributions are described here
+# so a single `uv sync` provisions the whole monorepo; the CLI entry
+# points are listed under `[project.scripts]` below.
+#
+# Tooling: uv (https://docs.astral.sh/uv/). Use `uv sync` to install.
 
 [project]
 name = "agentforge"
-version = "0.1.0"
-description = "A modular framework for building tool-using LLM agents."
+version = "1.5.0"
+description = "AgentForge — AI Agent Development, Evaluation & Deployment Platform."
 readme = "README.md"
-requires-python = ">=3.10"
-license = { text = "MIT" }
-authors = [{ name = "AgentForge Contributors" }]
-dependencies = [
-    "pydantic>=2.5",
-    "httpx>=0.27",
-    "tenacity>=8.2",
-    "typing-extensions>=4.9",
+requires-python = ">=3.11,<3.14"
+license = { text = "Apache-2.0" }
+authors = [
+  { name = "Google LLC" },
 ]
+keywords = ["agent", "ai", "agents-cli", "agentforge", "adk", "fastapi"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+# ---------------------------------------------------------------------------
+# Runtime dependencies (web-platform backend + CLI shared deps).
+# ---------------------------------------------------------------------------
+dependencies = [
+  # Web framework.
+  "fastapi>=0.115.0,<0.116.0",
+  "uvicorn[standard]>=0.32.0,<0.40.0",
+  # Settings.
+  "pydantic>=2.9.0,<3.0.0",
+  "pydantic-settings>=2.6.0,<3.0.0",
+  "email-validator>=2.2.0,<3.0.0",
+  # Persistence.
+  "SQLAlchemy>=2.0.30,<3.0.0",
+  "alembic>=1.13.0,<2.0.0",
+  # Security.
+  "argon2-cffi>=23.1.0,<24.0.0",
+  "PyJWT>=2.9.0,<3.0.0",
+  # Database drivers.
+  "psycopg2-binary>=2.9.9 ; platform_system != 'Windows' or python_version >= '3.13'",
+  # Background worker.
+  "arq>=0.26.0,<1.0.0",
+  "redis>=5.0.0,<7.0.0",
+  # Provider stack — Google ADK.
+  "google-adk>=1.0.0,<2.0.0",
+  "google-genai>=1.0.0,<3.0.0",
+  # CLI integration (we use the same version-detection helper as the CLI).
+  "importlib-metadata>=8.0.0,<9.0.0",
+  # CLI dependencies: cookiecutter for `scaffold create`, click for the
+  # command tree, requests for the version-update check.
+  "click>=8.1.0,<9.0.0",
+  "cookiecutter>=2.6.0,<3.0.0",
+  "requests>=2.32.0,<3.0.0",
+  "packaging>=24.0.0,<25.0.0",
+  "pyyaml>=6.0.0,<7.0.0",
+  "rich>=13.0.0,<14.0.0",
+  "tomlkit>=0.13.0,<1.0.0",
+  "jinja2>=3.1.0,<4.0.0",
+  "jsonschema>=4.21.0,<5.0.0",
+]
+
+# CLI entry points.
+#
+# `agentforge` is the primary console script.
+# `agents-cli` is a back-compat alias retained for one release cycle so
+# existing shell aliases, CI scripts, and muscle memory keep working.
+[project.scripts]
+agentforge = "agentforge.main:main"
+agents-cli = "agentforge.main:main"
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=7.4",
-    "pytest-asyncio>=0.23",
-    "pytest-cov>=4.1",
-    "ruff>=0.5",
+  "pytest>=8.3.0,<9.0.0",
+  "pytest-asyncio>=0.24.0,<0.30.0",
+  "httpx>=0.27.0,<0.30.0",
+  "ruff>=0.7.0,<0.10.0",
+  "mypy>=1.13.0,<2.0.0",
 ]
 
-[tool.setuptools.packages.find]
-where = ["src"]
+# ---------------------------------------------------------------------------
+# Build configuration. We use hatchling because it's stdlib-friendly
+# and works without an extra dependency on most Python installs.
+# ---------------------------------------------------------------------------
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-asyncio_mode = "auto"
-addopts = "-ra -q"
+[tool.hatch.build.targets.wheel]
+packages = ["agentforge_api", "src/agentforge"]
 
+# ---------------------------------------------------------------------------
+# Tools.
+# ---------------------------------------------------------------------------
 [tool.ruff]
 line-length = 100
-target-version = "py310"
+target-version = "py311"
+# The CLI source under src/agentforge has its own ruff config; this
+# monorepo config is for the web backend and shared tooling only.
+extend-exclude = ["src/agentforge", "extensions", "skills"]
+
+[tool.ruff.lint]
+select = [
+  "E",  # pycodestyle
+  "F",  # pyflakes
+  "I",  # isort
+  "B",  # flake8-bugbear
+  "UP", # pyupgrade
+]
+ignore = [
+  "E501", # line too long (we let ruff format wrap)
+]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+ignore_missing_imports = true
+files = ["agentforge_api", "tests/api", "tests/test_agentforge_compat.py"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests/api", "tests/test_agentforge_compat.py", "extensions/langchain/tests"]
+addopts = "-ra --strict-markers"

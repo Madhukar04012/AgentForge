@@ -1,0 +1,120 @@
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Phase 2 docker-compose — local development.
+#
+# Services:
+#   * db      — PostgreSQL 16
+#   * redis   — Redis 7 (used by the Arq worker; included in Phase 1
+#               so the network + volume are ready)
+#   * api     — FastAPI backend
+#   * worker  — Arq worker process. Reads queued Execution rows
+#               off Redis and drives them through the runtime bridge.
+#   * web     — nginx serving the built SPA, reverse-proxying /api to
+#               the API container
+#
+# Bring it up with:    docker compose -f docker/docker-compose.yml up
+# Tear down with:      docker compose -f docker/docker-compose.yml down
+# Reset DB with:       docker compose -f docker/docker-compose.yml down -v
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: agentforge
+      POSTGRES_PASSWORD: agentforge
+      POSTGRES_DB: agentforge
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agentforge -d agentforge"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.api
+    environment:
+      AGENTFORGE_DB_URL: postgresql+psycopg2://agentforge:agentforge@db:5432/agentforge
+      AGENTFORGE_REDIS_URL: redis://redis:6379/0
+      AGENTFORGE_JWT_SECRET: dev-only-not-for-production
+      AGENTFORGE_DEMO_MODE: "true"
+      AGENTFORGE_ENVIRONMENT: development
+      AGENTFORGE_CORS_ORIGINS: http://localhost:8080
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; r=urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=3); sys.exit(0 if r.status==200 else 1)"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 15s
+
+  worker:
+    # Runs ``arq agentforge_api.worker.WorkerSettings``. The
+    # container image is the same as the API; only the entrypoint
+    # differs.
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.api
+    environment:
+      AGENTFORGE_DB_URL: postgresql+psycopg2://agentforge:agentforge@db:5432/agentforge
+      AGENTFORGE_REDIS_URL: redis://redis:6379/0
+      AGENTFORGE_JWT_SECRET: dev-only-not-for-production
+      AGENTFORGE_DEMO_MODE: "true"
+      AGENTFORGE_ENVIRONMENT: development
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: ["arq", "agentforge_api.worker.WorkerSettings"]
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.web
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "8080:80"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+
+volumes:
+  db_data:

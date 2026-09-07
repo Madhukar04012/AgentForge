@@ -1,0 +1,9 @@
+{
+  "name": "agentforge",
+  "version": "1.5.0",
+  "description": "AgentForge — AI Agent Development, Evaluation & Deployment Platform. Scaffold, develop, evaluate, and deploy AI agents with Google ADK. Bundles skills for the agent development lifecycle.",
+  "author": { "name": "Google LLC" },
+  "homepage": "https://github.com/google/agents-cli",
+  "repository": "https://github.com/google/agents-cli",
+  "license": "Apache-2.0"
+}

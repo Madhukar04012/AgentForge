@@ -1,0 +1,82 @@
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: 'Bug Report'
+description: 'Report a bug to help us improve AgentForge'
+labels: ['status/need-triage', 'type/bug']
+body:
+  - type: 'markdown'
+    attributes:
+      value: |-
+        > [!IMPORTANT]
+        > Thanks for taking the time to fill out this bug report!
+        >
+        > Please search **[existing issues](https://github.com/google/agents-cli/issues)** to see if an issue already exists for the bug you encountered.
+
+  - type: 'textarea'
+    id: 'problem'
+    attributes:
+      label: 'What happened?'
+      description: 'A clear and concise description of what the bug is.'
+    validations:
+      required: true
+
+  - type: 'textarea'
+    id: 'repro'
+    attributes:
+      label: 'Steps to Reproduce'
+      description: 'Please provide the exact steps to reproduce the behavior.'
+      placeholder: |-
+        1. Run `agentforge create my-agent`
+        2. Modify `...`
+        3. Run `agentforge deploy`
+        4. See error `...`
+    validations:
+      required: true
+
+  - type: 'textarea'
+    id: 'expected'
+    attributes:
+      label: 'What did you expect to happen?'
+    validations:
+      required: true
+
+  - type: 'textarea'
+    id: 'info'
+    attributes:
+      label: 'Client information'
+      description: 'Please paste the full text from `agentforge info`.'
+      value: |-
+        <details>
+        <summary>Client Information</summary>
+
+        Run `agentforge info` to output debugging information about your client.
+
+        </details>
+    validations:
+      required: true
+
+  - type: 'textarea'
+    id: 'logs'
+    attributes:
+      label: 'Command Output / Logs'
+      description: 'Paste the full output of the command that failed. If possible, run with `--verbose`.'
+    validations:
+      required: false
+
+  - type: 'textarea'
+    id: 'additional-context'
+    attributes:
+      label: 'Anything else we need to know?'
+      description: 'Add any other context about the problem here.'
