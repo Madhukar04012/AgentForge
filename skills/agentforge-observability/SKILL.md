@@ -11,7 +11,7 @@ description: >
   Do NOT use for deployment setup (use agentforge-deploy) or
   API code patterns (use agentforge-adk-code).
 metadata:
-  author: Google
+  author: Madhukar Reddy
   license: Apache-2.0
   version: 1.5.0
   requires:

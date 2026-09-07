@@ -114,4 +114,4 @@ Once you have a baseline, the eval surface has a few more commands worth knowing
 - `agents-cli eval analyze RESULTS` — cluster failure modes from a grade-results file.
 - `agents-cli eval optimize` — auto-tune your agent's prompts using eval data.
 
-See the [Evaluation Guide](https://google.github.io/agents-cli/guide/evaluation/) for the full surface and metric reference.
+See the [Evaluation Guide](https://github.com/Madhukar04012/AgentForge/tree/main/docs/src/guide/evaluation.md) for the full surface and metric reference.

@@ -854,7 +854,7 @@ _LEGACY_EVALSET_GLOB = "*.evalset.json"
 _LEGACY_EVAL_CONFIG = "tests/eval/eval_config.json"
 _NEW_EVAL_CONFIG = "tests/eval/eval_config.yaml"
 _EVAL_MIGRATION_URL = (
-    "https://google.github.io/agents-cli/reference/eval-dataset-migration/"
+    "https://github.com/Madhukar04012/AgentForge/blob/main/docs/src/reference/eval-dataset-migration.md"
 )
 
 

@@ -48,7 +48,7 @@ Recipes cover:
 - Approval gates before risky actions
 - Event-driven runs
 
-Your coding agent picks the recipe for you. The `agentforge-adk-code` skill contains a [topic index](../reference/skills.md#adk-code) (or the [samples reference](https://github.com/google/agents-cli/blob/main/skills/agentforge-adk-code/references/samples.md)) that maps each need to a recipe, and the workflow skill tells the agent to read the index before writing code. Ask for an agent that answers questions from your docs, and it opens `rag-agent-search`.
+Your coding agent picks the recipe for you. The `agentforge-adk-code` skill contains a [topic index](../reference/skills.md#adk-code) (or the [samples reference](https://github.com/Madhukar04012/AgentForge/blob/main/skills/agentforge-adk-code/references/samples.md)) that maps each need to a recipe, and the workflow skill tells the agent to read the index before writing code. Ask for an agent that answers questions from your docs, and it opens `rag-agent-search`.
 
 ---
 

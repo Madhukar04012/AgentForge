@@ -1170,7 +1170,7 @@ def enhance(
         if interactive or base_template:
             console.print()
             console.print(
-                f"Template inherits from base: [cyan][link=https://github.com/google/agents-cli/tree/main/agents/{base_template_name}]{base_template_name}[/link][/cyan]"
+                f"Template inherits from base: [cyan][link=https://github.com/Madhukar04012/AgentForge/tree/main/src/agentforge/scaffold/agents/{base_template_name}]{base_template_name}[/link][/cyan]"
             )
             console.print()
 

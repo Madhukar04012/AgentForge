@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# yaml-language-server: $schema=https://raw.githubusercontent.com/google/agentforge/main/schemas/agentforge-extension-v1alpha1.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Madhukar04012/AgentForge/main/schemas/agentforge-extension-v1alpha1.schema.json
 
 # Scaffolded into every project made from this template, so the lifecycle
 # commands that assume ADK run the LangChain equivalent instead.

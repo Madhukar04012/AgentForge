@@ -21,7 +21,7 @@ Everything below is optional except `run` on a command (a non-empty list). Unkno
 Machine-readable equivalent: `schemas/agents-cli-extension-v1alpha1.schema.json` in the agentforge repo, generated from the same models the loader uses. Point a `yaml-language-server` modeline at it for editor validation.
 
 ```yaml
-# yaml-language-server: $schema=https://raw.githubusercontent.com/google/agents-cli/main/schemas/agents-cli-extension-v1alpha1.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Madhukar04012/AgentForge/main/schemas/agents-cli-extension-v1alpha1.schema.json
 schema: agents-cli-extension/v1alpha1
 name: my-extension
 description: What this extension does.

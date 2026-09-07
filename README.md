@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/google/agents-cli/main/docs/src/assets/logo_sm.png" alt="AgentForge logo" width="120" />
+  <img src="docs/src/assets/logo_sm.png" alt="AgentForge logo" width="120" />
   <h1>AgentForge</h1>
   <p>AI Agent Development, Evaluation & Deployment Platform.</p>
 
@@ -8,16 +8,16 @@
     <a href="#agent-skills">Skills</a> &nbsp;&nbsp;|&nbsp;&nbsp;
     <a href="#cli-commands">Commands</a> &nbsp;&nbsp;|&nbsp;&nbsp;
     <a href="https://pypi.org/project/agentforge/">PyPI</a> &nbsp;&nbsp;|&nbsp;&nbsp;
-    <a href="https://github.com/google/agents-cli/issues">Issues</a> &nbsp;&nbsp;|&nbsp;&nbsp;
-    <a href="https://google.github.io/agents-cli/">Docs</a> &nbsp;&nbsp;|&nbsp;&nbsp;
-    <a href="https://github.com/google/agents-cli/blob/main/RELEASE_NOTES.md">Release Notes</a> &nbsp;&nbsp;|&nbsp;&nbsp;
-    <a href="https://github.com/google/agents-cli">Star us</a>
+    <a href="https://github.com/Madhukar04012/AgentForge/issues">Issues</a> &nbsp;&nbsp;|&nbsp;&nbsp;
+    <a href="https://github.com/Madhukar04012/AgentForge/tree/main/docs">Docs</a> &nbsp;&nbsp;|&nbsp;&nbsp;
+    <a href="https://github.com/Madhukar04012/AgentForge/blob/main/RELEASE_NOTES.md">Release Notes</a> &nbsp;&nbsp;|&nbsp;&nbsp;
+    <a href="https://github.com/Madhukar04012/AgentForge">Star us</a>
   </p>
 </div>
 
 ---
 
-> **Attribution:** AgentForge is an independently developed AI agent development platform built upon and extending concepts and components from the original [Google Agents CLI](https://github.com/google/agents-cli) project. The original project remains the upstream foundation; AgentForge carries forward its architecture, evaluation flywheel, deployment system, and skill bundle under the same Apache-2.0 license. See [LICENSE](LICENSE) for details.
+> AgentForge is an AI agent development platform for building, evaluating, and deploying production agents. See [LICENSE](LICENSE) for details.
 
 ---
 
@@ -42,7 +42,7 @@ uvx agentforge setup
 <summary>Or just the skills — your coding agent will handle the rest</summary>
 
 ```bash
-npx skills add google/agents-cli
+npx skills add Madhukar04012/AgentForge
 ```
 
 </details>
@@ -55,9 +55,9 @@ Launch [Antigravity CLI](https://antigravity.google/), [Claude Code](https://doc
 
 Ask your coding agent to build something — e.g. *"Use AgentForge to build a caveman-style agent that compresses verbose text into terse, technical grunts"*
 
-See the [full tutorial](https://google.github.io/agents-cli/guide/quickstart-tutorial/) for a step-by-step walkthrough.
+See the [full tutorial](docs/src/guide/quickstart-tutorial.md) for a step-by-step walkthrough.
 
-**[Browse the full documentation →](https://google.github.io/agents-cli/)**
+**[Browse the full documentation →](docs/)**
 
 ---
 
@@ -136,7 +136,7 @@ The primary command is **`agentforge`**. The legacy `agents-cli` binary remains 
 
 The Google Cloud agent stack that AgentForge builds on:
 
-![Architecture](https://raw.githubusercontent.com/google/agents-cli/main/docs/src/assets/architecture.png "Architecture")
+![Architecture](docs/src/assets/architecture.png "Architecture")
 
 ## FAQ
 
@@ -162,12 +162,12 @@ AgentForge skills cover the agent-building lifecycle (scaffold, ADK code pattern
 
 We value your input — it helps us improve AgentForge for the community.
 
-- **Bugs & feature requests:** [open an issue](https://github.com/google/agents-cli/issues/new) — 👍 the ones you want prioritized
+- **Bugs & feature requests:** [open an issue](https://github.com/Madhukar04012/AgentForge/issues/new) — 👍 the ones you want prioritized
 - **Share what you built:** we'd love to hear about your projects! Reach out at <a href="mailto:agents-cli@google.com">agents-cli@google.com</a> to share your agent or provide feedback
 
 ## Contributing
 
-The best way to contribute is through feedback: bug reports, feature requests, and ideas shared via [issues](https://github.com/google/agents-cli/issues) to directly shape our roadmap.
+The best way to contribute is through feedback: bug reports, feature requests, and ideas shared via [issues](https://github.com/Madhukar04012/AgentForge/issues) to directly shape our roadmap.
 
 See the [contributing guide](CONTRIBUTING.md) for details.
 

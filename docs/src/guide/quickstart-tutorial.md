@@ -8,8 +8,6 @@ You'll build a **caveman compressor**: an agent that takes verbose text and grun
 
 Here's what it looks like end to end:
 
-![agentforge demo](https://raw.githubusercontent.com/google/agents-cli/assets/agents-cli-demo.gif)
-
 ---
 
 ## Setup

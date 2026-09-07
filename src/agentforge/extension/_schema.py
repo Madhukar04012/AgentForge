@@ -48,7 +48,7 @@ SCHEMA_FILE = "agents-cli-extension-v1alpha1.schema.json"
 # Repo-only: generated for editors and the published contract, not read at runtime.
 SCHEMA_PATH = Path(__file__).resolve().parents[5] / "schemas" / SCHEMA_FILE
 SCHEMA_ID = (
-    f"https://raw.githubusercontent.com/google/agents-cli/main/schemas/{SCHEMA_FILE}"
+    f"https://raw.githubusercontent.com/Madhukar04012/AgentForge/main/schemas/{SCHEMA_FILE}"
 )
 
 

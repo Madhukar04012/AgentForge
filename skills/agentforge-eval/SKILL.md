@@ -10,7 +10,7 @@ description: >
   Do NOT use for agent API code patterns (ADK: use agentforge-adk-code), deployment
   (use agentforge-deploy), or project scaffolding (use agentforge-scaffold).
 metadata:
-  author: Google
+  author: Madhukar Reddy
   license: Apache-2.0
   version: 1.5.0
   requires:

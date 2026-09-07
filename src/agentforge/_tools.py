@@ -152,7 +152,7 @@ def require_tool(name: str, install_hint: str = "") -> str:
 
 
 # Where `agentforge setup` fetches the bundled skills from.
-DEFAULT_SKILLS_SOURCE = "https://github.com/google/agents-cli"
+DEFAULT_SKILLS_SOURCE = "https://github.com/Madhukar04012/AgentForge"
 
 
 def run_npx_skills(args: list[str], spinner_msg: str):

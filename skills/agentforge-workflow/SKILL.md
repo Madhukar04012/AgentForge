@@ -10,7 +10,7 @@ description: >
   deploy, publish, observe), code preservation rules, model selection
   guidance, and troubleshooting steps for ADK or any agent development.
 metadata:
-  author: Google
+  author: Madhukar Reddy
   license: Apache-2.0
   version: 1.5.0
   requires:

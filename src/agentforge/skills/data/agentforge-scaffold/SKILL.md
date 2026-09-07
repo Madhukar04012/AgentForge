@@ -10,7 +10,7 @@ description: >
   Do NOT use for writing agent code (ADK projects: use agentforge-adk-code) or
   deployment operations (use agentforge-deploy).
 metadata:
-  author: Google
+  author: Madhukar Reddy
   license: Apache-2.0
   version: 1.5.0
   requires:

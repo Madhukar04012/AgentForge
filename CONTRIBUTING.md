@@ -1,6 +1,6 @@
 # Contributing to AgentForge
 
-We welcome contributions to AgentForge! If you'd like to report a bug, suggest a feature, or discuss a change, please [open an issue](https://github.com/google/agents-cli/issues) on GitHub. Pull requests are not currently accepted.
+We welcome contributions to AgentForge! If you'd like to report a bug, suggest a feature, or discuss a change, please [open an issue](https://github.com/Madhukar04012/AgentForge/issues) on GitHub. Pull requests are not currently accepted.
 
 When opening an issue, include:
 - A clear description of the problem or suggestion

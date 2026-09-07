@@ -3,9 +3,9 @@
   "name": "agentforge",
   "version": "1.5.0",
   "description": "AI Agent Development, Evaluation & Deployment Platform",
-  "author": { "name": "Google LLC" },
-  "homepage": "https://github.com/google/agents-cli",
-  "repository": "https://github.com/google/agents-cli",
+  "author": { "name": "Madhukar Reddy" },
+  "homepage": "https://github.com/Madhukar04012/AgentForge",
+  "repository": "https://github.com/Madhukar04012/AgentForge",
   "license": "Apache-2.0",
   "keywords": [
     "adk",

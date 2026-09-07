@@ -18,7 +18,7 @@ hide:
     <p class="tagline">CLI and skills for building agents on Google Cloud.</p>
     <div class="home-cta">
       <a href="guide/getting-started/" class="cta-primary">Get Started &rarr;</a>
-      <a href="https://github.com/google/agents-cli" class="cta-secondary" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+      <a href="https://github.com/Madhukar04012/AgentForge" class="cta-secondary" target="_blank" rel="noopener noreferrer">View on GitHub</a>
     </div>
     <div class="works-with">
       <p class="works-with-text">Works with your coding agent</p>

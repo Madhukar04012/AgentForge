@@ -10,7 +10,7 @@ description: >
   Do NOT use for scaffolding (use agentforge-scaffold) or deployment
   (use agentforge-deploy).
 metadata:
-  author: Google
+  author: Madhukar Reddy
   license: Apache-2.0
   version: 1.5.0
   requires:
