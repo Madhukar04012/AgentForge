@@ -1,5 +1,4 @@
 <div align="center">
-  <img src="docs/src/assets/logo_sm.png" alt="AgentForge logo" width="120" />
   <h1>AgentForge</h1>
   <p>AI Agent Development, Evaluation & Deployment Platform.</p>
 
@@ -126,7 +125,7 @@ The primary command is **`agentforge`**. The legacy `agents-cli` binary remains 
 
 <div align="center">
   <a href="https://youtu.be/ECYKo70pPNc">
-    <img src="https://img.youtube.com/vi/ECYKo70pPNc/maxresdefault.jpg" alt="AgentForge demo video" width="100%" />
+    Watch the AgentForge demo video
   </a>
 </div>
 
@@ -134,9 +133,7 @@ The primary command is **`agentforge`**. The legacy `agents-cli` binary remains 
 
 ## Architecture
 
-The Google Cloud agent stack that AgentForge builds on:
-
-![Architecture](docs/src/assets/architecture.png "Architecture")
+The Google Cloud agent stack that AgentForge builds on.
 
 ## FAQ
 
