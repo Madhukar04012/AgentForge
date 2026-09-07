@@ -16,7 +16,7 @@
 
 ---
 
-> AgentForge is an AI agent development platform for building, evaluating, and deploying production agents. See [LICENSE](LICENSE) for details.
+> AgentForge is an AI agent development platform for building, evaluating, and deploying production agents.
 
 ---
 
@@ -161,12 +161,6 @@ We value your input — it helps us improve AgentForge for the community.
 
 - **Bugs & feature requests:** [open an issue](https://github.com/Madhukar04012/AgentForge/issues/new) — 👍 the ones you want prioritized
 - **Share what you built:** we'd love to hear about your projects! Reach out at <a href="mailto:agents-cli@google.com">agents-cli@google.com</a> to share your agent or provide feedback
-
-## Contributing
-
-The best way to contribute is through feedback: bug reports, feature requests, and ideas shared via [issues](https://github.com/Madhukar04012/AgentForge/issues) to directly shape our roadmap.
-
-See the [contributing guide](CONTRIBUTING.md) for details.
 
 ## Terms of Service
 
